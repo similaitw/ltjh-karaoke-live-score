@@ -3,3 +3,12 @@
 node_modules/
 .venv/
 __pycache__/
+.npm-cache/
+.next/
+out/
+coverage/
+playwright-report/
+test-results/
+.playwright/
+*.tsbuildinfo
+!.env.example
