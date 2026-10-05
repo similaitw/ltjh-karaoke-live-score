@@ -12,7 +12,7 @@ import { createClient } from "@supabase/supabase-js";
 import { applyAction, type Action, type Competition } from "@/lib/domain";
 import { mockCompetition } from "@/lib/mock";
 
-const KEY = "ltjh-competition-v1";
+const KEY = "ltjh-competition-v2";
 export const remote = process.env.NEXT_PUBLIC_DATA_MODE === "supabase";
 type Context = {
   state: Competition;
@@ -80,7 +80,7 @@ export function CompetitionProvider({
     queueMicrotask(() => {
       if (!disposed) {
         try {
-          updateToken(sessionStorage.getItem("ltjh-token") ?? "");
+          updateToken(sessionStorage.getItem("ltjh-judge-token") ?? "");
         } catch {
           setError("瀏覽器無法保存操作代碼，請允許網站儲存空間。");
         }
@@ -129,7 +129,7 @@ export function CompetitionProvider({
   function setToken(value: string) {
     updateToken(value);
     try {
-      sessionStorage.setItem("ltjh-token", value);
+      sessionStorage.setItem("ltjh-judge-token", value);
     } catch {
       setError("操作代碼暫存失敗；重新整理後需再輸入。");
     }
@@ -148,7 +148,9 @@ export function CompetitionProvider({
             signal: AbortSignal.timeout(10000),
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
+              ...(action.type === "score" && token
+                ? { Authorization: `Bearer ${token}` }
+                : {}),
             },
             body: JSON.stringify(action),
           });

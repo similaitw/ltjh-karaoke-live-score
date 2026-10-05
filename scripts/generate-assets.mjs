@@ -1,10 +1,11 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import aruco from "js-aruco2";
 import { mockCompetition } from "../src/lib/mock.ts";
+import { CARD_COUNT } from "../src/lib/card-config.ts";
 
 mkdirSync("public/cards", { recursive: true });
 const dictionary = new aruco.AR.Dictionary("ARUCO_MIP_36h12");
-for (let id = 0; id < 20; id++)
+for (let id = 0; id < CARD_COUNT; id++)
   writeFileSync(`public/cards/${id}.svg`, dictionary.generateSVG(id), "utf8");
 const state = mockCompetition();
 const initial = JSON.stringify(state).replaceAll("'", "''");

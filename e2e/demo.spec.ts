@@ -33,12 +33,22 @@ test("complete demo, cross-tab sync, correction, locking and publishing", async 
     ["j3", "100"],
   ]) {
     await page.getByLabel("評審身分").selectOption(judge);
-    await page.getByLabel("整體分數").fill(value);
+    for (const [label, max] of [
+      ["音準", 25],
+      ["節奏", 20],
+      ["歌唱技巧", 20],
+      ["情感表達", 20],
+      ["舞台表現", 15],
+    ] as const)
+      await page.getByLabel(label).fill(String((max * Number(value)) / 100));
+    await expect(page.getByLabel("評審總分")).toHaveText(value);
     await page.getByRole("button", { name: "送出評分" }).click();
-    await expect(page.getByRole("status")).toContainText("評分已儲存");
+    await expect(
+      page.getByRole("status").filter({ hasText: "評分已儲存" }),
+    ).toContainText("評分已儲存");
   }
   await expect(display.getByTestId("score-c1").locator(".total")).toHaveText(
-    "78.50",
+    "82.63",
   );
   await page.goto("/admin");
   await page.getByRole("button", { name: "公布最終成績", exact: true }).click();
@@ -51,7 +61,7 @@ test("complete demo, cross-tab sync, correction, locking and publishing", async 
   await expect(page.locator(".print-card")).toHaveCount(20);
   await expect(page.locator(".marker svg")).toHaveCount(20);
   const printed = await page.pdf({ preferCSSPageSize: true });
-  expect(printed.toString("latin1").match(/\/Type \/Page\b/g)).toHaveLength(10);
+  expect(printed.toString("latin1").match(/\/Type \/Page\b/g)).toHaveLength(5);
 });
 
 test("camera permission failure is actionable; no layout overflow on all routes", async ({

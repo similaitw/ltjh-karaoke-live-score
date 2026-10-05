@@ -753,6 +753,9 @@ footer {
   break-inside: avoid;
   page-break-inside: avoid;
 }
+.cards-sheet {
+  display: contents;
+}
 .print-card header {
   display: flex;
   justify-content: space-between;
@@ -1147,34 +1150,41 @@ footer {
   .cards-grid {
     display: block;
   }
-  .print-card {
-    height: 135mm;
-    width: 190mm;
-    box-sizing: border-box;
-    border: 0;
-    padding: 6mm;
-    page-break-inside: avoid;
-    break-inside: avoid;
-  }
-  .print-card:nth-child(2n) {
+  .cards-sheet {
+    display: grid;
+    grid-template-columns: repeat(2, 95mm);
+    grid-template-rows: repeat(2, 135mm);
     break-after: page;
     page-break-after: always;
+  }
+  .cards-sheet:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+  .print-card {
+    height: 135mm;
+    width: 95mm;
+    box-sizing: border-box;
+    border: 0;
+    padding: 4mm;
+    page-break-inside: avoid;
+    break-inside: avoid;
   }
   .print-card:last-child {
     break-after: auto;
     page-break-after: auto;
   }
   .marker-wrap {
-    width: 105mm;
-    max-width: 105mm;
-    margin: 3mm auto;
+    width: 80mm;
+    max-width: 80mm;
+    margin: 10mm auto;
     padding: 9mm;
   }
   .answer {
     font-size: 12pt;
   }
   .print-card header {
-    font-size: 11pt;
+    font-size: 8pt;
   }
   .print-card > p {
     font-size: 9pt;

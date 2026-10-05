@@ -1,6 +1,64 @@
 "use client";
 import { useState } from "react";
 import { useCompetition } from "@/components/competition-provider";
+import { RUBRIC, rubricTotal, type Rubric, type Score } from "@/lib/domain";
+
+function RubricForm({
+  saved,
+  disabled,
+  submit,
+}: {
+  saved?: Score;
+  disabled: boolean;
+  submit: (rubric: Rubric) => Promise<void>;
+}) {
+  const [values, setValues] = useState<Record<keyof Rubric, string>>(
+    () =>
+      Object.fromEntries(
+        RUBRIC.map((item) => [
+          item.key,
+          saved?.rubric?.[item.key]?.toString() ?? "",
+        ]),
+      ) as Record<keyof Rubric, string>,
+  );
+  const rubric = Object.fromEntries(
+    RUBRIC.map((item) => [item.key, Number(values[item.key])]),
+  ) as Rubric;
+  return (
+    <form
+      onSubmit={async (event) => {
+        event.preventDefault();
+        await submit(rubric);
+      }}
+    >
+      {RUBRIC.map((item) => (
+        <label key={item.key} htmlFor={item.key}>
+          {item.label}（上限 {item.max}）
+          <input
+            id={item.key}
+            name={item.key}
+            type="number"
+            min={0}
+            max={item.max}
+            step="0.1"
+            required
+            value={values[item.key]}
+            disabled={disabled}
+            onChange={(event) =>
+              setValues({ ...values, [item.key]: event.target.value })
+            }
+          />
+        </label>
+      ))}
+      <p>
+        總分 <output aria-label="評審總分">{rubricTotal(rubric)}</output> / 100
+      </p>
+      <button className="button primary" disabled={disabled}>
+        {saved ? "更新評分" : "送出評分"} ↗
+      </button>
+    </form>
+  );
+}
 
 export default function Judge() {
   const { state, send, busy, ready } = useCompetition();
@@ -18,8 +76,11 @@ export default function Judge() {
         <h1>
           每一分，都有份量<span className="heading-dot">.</span>
         </h1>
-        <p>聽見勇氣，也聽見細節。請給予 0–100 分的整體評分。</p>
+        <p>五項評分自動合計，滿分 100；每項不得超過標示上限。</p>
       </div>
+      {state.judgeWeight === 0 && (
+        <p className="notice">目前為 0/100 全觀眾模式，可略過評審流程。</p>
+      )}
       <div className="two-column">
         <section className="panel">
           <label htmlFor="judge">評審身分</label>
@@ -52,46 +113,18 @@ export default function Judge() {
               </option>
             ))}
           </select>
-          <form
-            key={`${judgeId}-${contestantId}-${saved?.value}`}
-            onSubmit={async (e) => {
-              e.preventDefault();
-              const data = new FormData(e.currentTarget);
-              if (
-                await send({
-                  type: "score",
-                  judgeId,
-                  contestantId,
-                  value: Number(data.get("score")),
-                })
-              )
+          <RubricForm
+            key={`${judgeId}-${contestantId}-${JSON.stringify(saved)}`}
+            saved={saved}
+            disabled={
+              busy || !ready || state.published || state.judgeWeight === 0
+            }
+            submit={async (rubric) => {
+              if (await send({ type: "score", judgeId, contestantId, rubric }))
                 setMessage("評分已儲存，可再次送出修改。");
             }}
-          >
-            <label htmlFor="score">整體分數</label>
-            <div className="score-input">
-              <input
-                id="score"
-                name="score"
-                type="number"
-                min="0"
-                max="100"
-                step="0.1"
-                required
-                defaultValue={saved?.value ?? ""}
-                placeholder="—"
-                disabled={state.published}
-              />
-              <span>/ 100</span>
-            </div>
-            <button
-              className="button primary"
-              disabled={busy || !ready || state.published}
-            >
-              {saved ? "更新評分" : "送出評分"} ↗
-            </button>
-            <p role="status">{message}</p>
-          </form>
+          />
+          <p role="status">{message}</p>
         </section>
         <aside className="judge-poster">
           <p className="eyebrow">YOU ARE LISTENING TO</p>
@@ -102,9 +135,13 @@ export default function Judge() {
           <h3>《{contestant.song}》</h3>
           <p>{contestant.className}</p>
           <div className="divider" />
-          <p>{saved ? `你的已存分數：${saved.value}` : "你的評分尚未送出"}</p>
+          <p>
+            {saved
+              ? `你的已存分數：${saved.total}${saved.rubric ? "" : "（舊資料待補五項評分）"}`
+              : "你的評分尚未送出"}
+          </p>
           <small>
-            評分參考：音準、節奏、情感及舞台表現。
+            評分項目：音準、節奏、歌唱技巧、情感表達、舞台表現。
             <br />
             每位評審在總分中佔相同權重。
           </small>

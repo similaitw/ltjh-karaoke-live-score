@@ -71,7 +71,7 @@ export default function Home() {
         <Link href="/cards">
           <span className="mono">03 / CARDS</span>
           <h3>把支持，拿在手上 ↗</h3>
-          <p>20 張方向圖卡，列印即可參與。</p>
+          <p>1–40 張方向圖卡，A4 每頁 4 張。</p>
         </Link>
       </section>
       <section>
