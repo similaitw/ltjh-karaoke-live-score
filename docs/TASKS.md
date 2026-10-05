@@ -28,3 +28,9 @@
 - 使用 migration / SQL 檔納入 repo。
 - display 與控制台可即時同步。
 - 提供清楚的 Vercel + Supabase 環境變數設定文件。
+
+### 本次交付與驗收狀態
+
+- 已實作 M0/M1 程式、六個路由、評分 domain、20 張卡、相機流程、累積與鎖票、Supabase migration/API/realtime、部署與 Android 驗收文件。
+- 自動驗證包含 decoder、scoring、API 權限、SQL 交易/RLS、桌面與手機 viewport 的完整 demo 及合成 video 掃描；實際指令與結果見 `docs/HANDOFF.md`。
+- Android Chrome / Samsung Internet 真機可靠度、雲端 Supabase 跨裝置與 Vercel 實際部署尚待外部驗收；不把合成測試宣稱為實機通過。
