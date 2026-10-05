@@ -1,7 +1,8 @@
 import { AR } from "js-aruco2";
+import { CARD_COUNT } from "./card-config";
+export { CARD_COUNT, DEFAULT_CARD_COUNT, CARDS_PER_PAGE } from "./card-config";
 
 export const DICTIONARY = "ARUCO_MIP_36h12";
-export const CARD_COUNT = 20;
 export const ANSWERS = ["A", "B", "C", "D"] as const;
 export type Answer = (typeof ANSWERS)[number];
 export type Detection = {
@@ -37,7 +38,10 @@ export function createDecoder() {
   }): Detection[] =>
     detector.detect(image).flatMap((marker) => {
       const direction = orientation(marker.corners);
-      return marker.id < CARD_COUNT && marker.hammingDistance === 0 && direction
+      return marker.id >= 0 &&
+        marker.id < CARD_COUNT &&
+        marker.hammingDistance === 0 &&
+        direction
         ? [{ markerId: marker.id, corners: marker.corners, ...direction }]
         : [];
     });
@@ -53,9 +57,19 @@ export function markerSvg(id: number) {
 export class StableDetections {
   private seen = new Map<number, { answer: Answer; count: number }>();
   update(detections: Detection[]) {
-    const ids = new Set(detections.map((d) => d.markerId));
-    for (const id of this.seen.keys()) if (!ids.has(id)) this.seen.delete(id);
-    return detections.filter((d) => {
+    const unique = new Map<number, Detection>();
+    const conflicts = new Set<number>();
+    for (const detection of detections) {
+      const previous = unique.get(detection.markerId);
+      if (previous && previous.answer !== detection.answer)
+        conflicts.add(detection.markerId);
+      unique.set(detection.markerId, detection);
+    }
+    // A conflicting frame breaks the consecutive-frame streak, in either order.
+    for (const id of conflicts) unique.delete(id);
+    for (const id of this.seen.keys())
+      if (!unique.has(id)) this.seen.delete(id);
+    return [...unique.values()].filter((d) => {
       const previous = this.seen.get(d.markerId);
       const count = previous?.answer === d.answer ? previous.count + 1 : 1;
       this.seen.set(d.markerId, { answer: d.answer, count });

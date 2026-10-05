@@ -1,5 +1,5 @@
 import "server-only";
-import { createHash, timingSafeEqual } from "node:crypto";
+import { createHash } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import type { Actor } from "./domain";
 
@@ -16,9 +16,6 @@ export function database() {
 export async function authenticate(token: string): Promise<Actor | null> {
   if (!token || token.length > 512) return null;
   const digest = (value: string) => createHash("sha256").update(value).digest();
-  const admin = process.env.ADMIN_TOKEN;
-  if (admin && timingSafeEqual(digest(token), digest(admin)))
-    return { role: "admin" };
   const { data, error } = await database()
     .from("judge_tokens")
     .select("judge_id, expires_at, revoked")

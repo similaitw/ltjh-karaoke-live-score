@@ -26,7 +26,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
         <div className="live-tag">
           <span className="live-dot" />
           {connection}
-          <span className="mono"> / M0·M1</span>
+          <span className="mono"> / M1.1</span>
         </div>
       </header>
       <nav aria-label="主要導覽">
@@ -52,11 +52,11 @@ export function Shell({ children }: { children: React.ReactNode }) {
             正在載入競賽資料…
           </p>
         )}
-        {remote && ["/admin", "/judge", "/scan"].includes(path) && (
+        {remote && path === "/judge" && (
           <details className="access">
             <summary>操作代碼 {token ? "・已填入" : "・尚未填入"}</summary>
             <label>
-              管理員／評審代碼
+              評審代碼
               <input
                 type="password"
                 value={token}
@@ -73,7 +73,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
             {error}
           </p>
         )}
-        {(ready || path === "/cards") && children}
+        {(ready || ["/cards", "/admin", "/scan"].includes(path)) && children}
       </main>
       <footer>
         <span>羅東國中卡拉社</span>

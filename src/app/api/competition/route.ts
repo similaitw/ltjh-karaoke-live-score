@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { actionSchema, applyAction, type Competition } from "@/lib/domain";
 import { authenticate, database } from "@/lib/server";
+import { hasAdminSession, sameOrigin } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 const headers = { "Cache-Control": "no-store" };
@@ -23,6 +24,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  if (!sameOrigin(request))
+    return NextResponse.json({ error: "來源不符" }, { status: 403 });
   try {
     const body = await request.text();
     if (body.length > 16_384)
@@ -30,12 +33,18 @@ export async function POST(request: Request) {
     const parsed = actionSchema.safeParse(JSON.parse(body));
     if (!parsed.success)
       return NextResponse.json({ error: "操作資料格式錯誤" }, { status: 400 });
-    const actor = await authenticate(
-      request.headers.get("authorization")?.match(/^Bearer (.+)$/)?.[1] ?? "",
-    );
+    const bearer = request.headers
+      .get("authorization")
+      ?.match(/^Bearer (.+)$/)?.[1];
+    // An explicit judge credential retains its restricted identity even in an admin browser.
+    const actor = bearer
+      ? await authenticate(bearer)
+      : (await hasAdminSession(request))
+        ? { role: "admin" as const }
+        : null;
     if (!actor)
       return NextResponse.json(
-        { error: "操作代碼錯誤、過期或已撤銷" },
+        { error: "請先登入管理者，或確認評審代碼有效" },
         { status: 401 },
       );
     const db = database();
@@ -63,6 +72,8 @@ export async function POST(request: Request) {
         p_event: {
           type: parsed.data.type,
           actor: actor.role === "admin" ? "admin" : actor.judgeId,
+          revision: next.revision,
+          detail: next.events.at(-1)?.detail,
         },
       });
       if (saved.error) throw new Error("儲存失敗，請確認資料庫 migration");

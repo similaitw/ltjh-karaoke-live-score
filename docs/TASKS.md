@@ -1,36 +1,20 @@
-﻿# Tasks
+# Tasks
 
 ## Current Task
 
-### M0/M1
+### M1.1 review fixes — issue #37
 
-### M0 Bootstrap
-- 建立 Next.js/TypeScript 專案。
-- 建立 README、AGENTS.md、docs/SPEC.md、docs/TASKS.md、docs/HANDOFF.md。
-- 建立主要路由骨架：/, /admin, /judge, /scan, /display, /cards。
-- 建立 scoring domain model 與 unit tests。
-- 建立權重滑桿（100/0 到 0/100）及 presets。
-- 建立 mock competition data，讓所有頁面可走完整 demo flow。
-- Vercel build 可通過。
+接續 #36 / PR #1，僅處理 review 與原始規格差異。工作分支 `chat2code/issue-37` 基於 `chat2code/issue-36`；Runner 負責 commit / push 與建立 base=`chat2code/issue-36` 的 stacked PR。不要對 main 開平行 PR，不合併 PR #1，不 auto-merge。
 
-### M1 Browser marker scanning spike + MVP
-先完成「掃卡可行性」再深入其他功能：
-1. 實作 browser camera permission / camera selection。
-2. 在 Android-compatible browser 做多 marker 偵測。
-3. 正確讀 marker ID 與 0/90/180/270 方向。
-4. 累積掃描、去重、修改答案、完成鎖票。
-5. 建立至少 20 張測試圖卡並用可重現 fixture / synthetic image 測試 decoder。
-6. 實機無法自動 CI 驗證的部分，在 docs/ANDROID_TESTING.md 列出最短測試步驟與已知限制。
-7. 若第一個 marker library 在實作中證實 Android/browser 不可靠，不可硬撐；記錄原因並換另一個 browser-compatible 方案。最終不得把 Plickers App 當依賴。
+- 修正同 frame 重複 marker ID，方向衝突採安全處理，補去重／三幀／消失重現 regression tests。
+- A/B/C/D 預設統一 100/85/70/55，管理者可於開賽前調整。
+- 五項評審 rubric、上限、total、覆蓋重送與管理明細，DB / API / snapshot 相容。
+- 1–40 張圖卡、預設 20、A4 每頁 4 張，驗證 1/20/40 張。
+- ADMIN_PASSWORD server-only 管理登入、共用 HttpOnly session、登出撤銷、client bundle 檢查；評審仍用獨立 token。
+- 確認後重新開票／清除本輪；新 round 拒絕舊票；公布後須先確認取消公布，所有重要操作記錄事件。
+- 五組權重 presets 和單滑桿；開賽鎖定，確認解鎖及重算，不靜默修改結果。
+- 執行 npm test、lint、typecheck、build、test:e2e，保留 RLS/API 驗證，更新 HANDOFF。
 
-### Supabase / realtime
-- schema 至少包含 competitions, contestants, judges/tokens, judge_scores, audience_rounds/votes, events/settings。
-- 使用 migration / SQL 檔納入 repo。
-- display 與控制台可即時同步。
-- 提供清楚的 Vercel + Supabase 環境變數設定文件。
+## 既有 M0/M1 範圍
 
-### 本次交付與驗收狀態
-
-- 已實作 M0/M1 程式、六個路由、評分 domain、20 張卡、相機流程、累積與鎖票、Supabase migration/API/realtime、部署與 Android 驗收文件。
-- 自動驗證包含 decoder、scoring、API 權限、SQL 交易/RLS、桌面與手機 viewport 的完整 demo 及合成 video 掃描；實際指令與結果見 `docs/HANDOFF.md`。
-- Android Chrome / Samsung Internet 真機可靠度、雲端 Supabase 跨裝置與 Vercel 實際部署尚待外部驗收；不把合成測試宣稱為實機通過。
+已建立 Next.js 六頁、方向圖卡 decoder、demo、Supabase schema/API/realtime 與部署文件。M1.1 不新增無關功能。Android 真機、Supabase/Vercel 真雲端仍待外部驗收，狀態見 HANDOFF。

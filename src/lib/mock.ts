@@ -6,6 +6,11 @@ export function mockCompetition(): Competition {
     title: "羅東國中・卡拉之聲",
     revision: 0,
     judgeWeight: 70,
+    audiencePoints: { A: 100, B: 85, C: 70, D: 55 },
+    started: false,
+    weightsLocked: false,
+    retiredRoundIds: [],
+    events: [],
     activeContestantId: "c1",
     published: false,
     contestants: [
@@ -28,7 +33,14 @@ export function mockCompetition(): Competition {
       ["j1", "j2", "j3"].map((judgeId, j) => ({
         contestantId,
         judgeId,
-        value: 82 + i * 3 + j,
+        rubric: {
+          pitch: 22,
+          rhythm: 17,
+          technique: 16 + i,
+          expression: 16 + i,
+          stage: 11 + i + j,
+        },
+        total: 82 + i * 3 + j,
       })),
     ),
     rounds: ["c2", "c3", "c4"].map((contestantId, i) => ({

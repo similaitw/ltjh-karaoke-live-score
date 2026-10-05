@@ -43,7 +43,7 @@ export default function Display() {
         </div>
         <div className="on-air-count mono">
           {Object.keys(round?.votes ?? {}).length}
-          <small> / 20 票</small>
+          <small> / 40 票</small>
         </div>
       </div>
       <Scoreboard stage />

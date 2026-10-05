@@ -3,10 +3,18 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import { CameraScanner } from "@/components/camera-scanner";
 import { remote, useCompetition } from "@/components/competition-provider";
-import { type Detection } from "@/lib/markers";
-import { ANSWER_POINTS, type Answer } from "@/lib/domain";
+import { CARD_COUNT, type Detection } from "@/lib/markers";
+import { type Answer } from "@/lib/domain";
+import { AdminSession } from "@/components/admin-session";
 
 export default function Scan() {
+  return (
+    <AdminSession>
+      <Scanner />
+    </AdminSession>
+  );
+}
+function Scanner() {
   const { state, send, busy, ready } = useCompetition();
   const [confirm, setConfirm] = useState(false);
   const inFlight = useRef(false);
@@ -67,7 +75,7 @@ export default function Scan() {
           <p className="eyebrow">COLLECTED VOICES</p>
           <div className="vote-total mono">
             {Object.keys(round?.votes ?? {}).length}
-            <span>/ 20</span>
+            <span>/ {CARD_COUNT}</span>
           </div>
           <p>
             {round?.status === "locked"
@@ -78,11 +86,11 @@ export default function Scan() {
             {(["A", "B", "C", "D"] as Answer[]).map((answer) => (
               <div key={answer}>
                 <span>
-                  {answer} <small>{ANSWER_POINTS[answer]} 分</small>
+                  {answer} <small>{state.audiencePoints[answer]} 分</small>
                 </span>
                 <meter
                   min="0"
-                  max="20"
+                  max={CARD_COUNT}
                   value={
                     Object.values(round?.votes ?? {}).filter(
                       (v) => v === answer,
@@ -130,7 +138,7 @@ export default function Scan() {
           <span className="fine">A / B / C / D 朝上選答案</span>
         </div>
         <div className="vote-grid">
-          {Array.from({ length: 20 }, (_, id) => (
+          {Array.from({ length: CARD_COUNT }, (_, id) => (
             <div key={id} className={round?.votes[id] ? "collected" : ""}>
               <span>卡 {String(id + 1).padStart(2, "0")}</span>
               <strong>{round?.votes[id] ?? "—"}</strong>
@@ -158,8 +166,9 @@ export default function Scan() {
           ))}
         </div>
         <p className="fine muted">
-          重新掃到同一卡時以最新穩定方向更新，也可在此人工更正。圖卡編號 01–20
-          對應 marker ID 0–19。
+          重新掃到同一卡時以最新穩定方向更新，也可在此人工更正。圖卡編號 01–
+          {CARD_COUNT}
+          對應 marker ID 0–{CARD_COUNT - 1}。
         </p>
         {!remote && (
           <div className="demo-controls">
